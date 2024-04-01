@@ -1,6 +1,7 @@
 use crate::command::ReplCommand;
 use clap::builder::StyledStr;
 use clap::Command;
+use nu_ansi_term::Style;
 use reedline::{Completer, Span, Suggestion};
 use std::collections::HashMap;
 
@@ -60,12 +61,13 @@ impl ReplCompleter {
         ReplCompleter { commands }
     }
 
-    fn build_suggestion(&self, value: &str, help: Option<&StyledStr>, span: Span) -> Suggestion {
+    fn build_suggestion(&self, value: &str, help: Option<&StyledStr>, span: Span, style: Option<Style>) -> Suggestion {
         Suggestion {
             value: value.to_string(),
             description: help.map(|n| format!("{}", n)),
             extra: None,
             span,
+            style,
             append_whitespace: true,
         }
     }
@@ -88,20 +90,20 @@ impl ReplCompleter {
                 arg.get_possible_values()
                     .iter()
                     .filter(|value| value.get_name().starts_with(search))
-                    .map(|value| self.build_suggestion(value.get_name(), value.get_help(), span)),
+                    .map(|value| self.build_suggestion(value.get_name(), value.get_help(), span, None)),
             );
 
             if let Some(long) = arg.get_long() {
                 let value = "--".to_string() + long;
                 if value.starts_with(search) {
-                    completions.push(self.build_suggestion(&value, arg.get_help(), span));
+                    completions.push(self.build_suggestion(&value, arg.get_help(), span, None));
                 }
             }
 
             if let Some(short) = arg.get_short() {
                 let value = "-".to_string() + &short.to_string();
                 if value.starts_with(search) {
-                    completions.push(self.build_suggestion(&value, arg.get_help(), span));
+                    completions.push(self.build_suggestion(&value, arg.get_help(), span, None));
                 }
             }
         }
@@ -111,7 +113,8 @@ impl ReplCompleter {
                 completions.push(self.build_suggestion(
                     subcommand.get_name(),
                     subcommand.get_after_help(),
-                    span,
+                    span, 
+                    None,
                 ));
             }
         }
@@ -125,13 +128,13 @@ impl ReplCompleter {
             .iter()
             .filter(|(key, _)| key.starts_with(search))
             .map(|(_, command)| {
-                self.build_suggestion(command.get_name(), command.get_about(), span)
+                self.build_suggestion(command.get_name(), command.get_about(), span, None)
             })
             .collect();
 
         if "help".starts_with(search) {
             let help: StyledStr = "show help".into();
-            result.push(self.build_suggestion("help", Some(&help), span));
+            result.push(self.build_suggestion("help", Some(&help), span, None));
         }
 
         result

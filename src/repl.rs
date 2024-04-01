@@ -5,6 +5,7 @@ use crate::prompt::ReplPrompt;
 use crate::{paint_green_bold, paint_yellow_bold, AfterCommandCallback, Callback};
 #[cfg(feature = "async")]
 use crate::{AsyncAfterCommandCallback, AsyncCallback};
+use reedline::MenuBuilder;
 use clap::Command;
 // use crossterm::event::{KeyCode, KeyModifiers};
 use nu_ansi_term::{Color, Style};
